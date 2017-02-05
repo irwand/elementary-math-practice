@@ -27,7 +27,7 @@ def getValidAnswer(string):
                 denom = int(denom)
                 temp = re.split(' +', num)
                 if len(temp) == 1:
-                    whole = 0
+                    whole, num = 0, int(temp[0])
                 else:
                     whole, num = [int(i.strip()) for i in temp]
                 value = Fraction(num + (whole * denom), denom)
@@ -40,7 +40,7 @@ def getValidAnswer(string):
             else:
                 return (answer, int(answer))
         except:
-            pass  # invalid input, try again
+            pass
 
 
 def fractionToMixedNumString(f):
@@ -64,7 +64,7 @@ def buildIndexArray(distrib):
     return indexArr
 
 
-def getRandomSingleDigit():
+def getWeightedRandomSingleDigit():
     """Get random number, from 0-10 with custom chance distribution."""
     # The keys on the dict below is the number and the value is how likely that
     # number will be selected.
@@ -81,7 +81,8 @@ def getRandomSingleDigit():
         9: 2,
     }
     indexArr = buildIndexArray(distrib)
-    return indexArr[random.randint(0, len(indexArr) - 1)]
+    selectedNum = indexArr[random.randint(0, len(indexArr) - 1)]
+    return (str(selectedNum), selectedNum)
 
 
 def getRandomSingleDigitFraction():
@@ -90,81 +91,98 @@ def getRandomSingleDigitFraction():
     b = random.randint(1,9)
     num = min(a, b)
     denom = max(a, b)
-    return Fraction(num, denom)
+    return (fractionToMixedNumString(Fraction(num, denom)), Fraction(num, denom))
 
 
 def getRandomSingleDigitMixedFraction():
     """Get random fraction single digit."""
     a = random.randint(1,50)
     b = random.randint(1,20)
-    return Fraction(a, b)
+    return (fractionToMixedNumString(Fraction(a, b)), Fraction(a, b))
 
 
 def getRandomDecimal():
     """Get decimal number."""
     numWhole = random.randint(1,2)
+    whole = ''.join([str(getWeightedRandomSingleDigit()) for i in range(numWhole)])
     numDec = random.randint(0,2)
-    whole = ''.join([str(getRandomSingleDigit()) for i in range(numWhole)])
-    dec = ''.join([str(getRandomSingleDigit()) for i in range(numWhole)])
-    return Decimal(whole + '.' + dec)
+    dec = ''.join([str(getWeightedRandomSingleDigit()) for i in range(numDec)])
+    string = whole + '.' + dec
+    return (string, Decimal(string))
 
 
-def makeAdd(getNumFunc, printNumFunc):
+def makeAdd(getNumFunc):
     """Return add function."""
     def add():
-        a = getNumFunc()
-        b = getNumFunc()
-        return ('{} + {} = '.format(printNumFunc(a), printNumFunc(b)), a + b)
+        (aStr, aVal) = getNumFunc()
+        (bStr, bVal) = getNumFunc()
+        return ('{} + {} = '.format(aStr, bStr), aVal + bVal)
     return add
 
 
-def makeMult(getNumFunc, printNumFunc):
+def makeMult(getNumFunc):
     """Return multiply function."""
     def mult():
-        a = getNumFunc()
-        b = getNumFunc()
-        return ('{} x {} = '.format(printNumFunc(a), printNumFunc(b)), a * b)
+        (aStr, aVal) = getNumFunc()
+        (bStr, bVal) = getNumFunc()
+        return ('{} x {} = '.format(aStr, bStr), aVal * bVal)
     return mult
 
 
-def makeSub(getNumFunc, printNumFunc):
+def makeSub(getNumFunc):
     """Return subtraction function."""
     def sub():
-        a = getNumFunc()
-        b = getNumFunc()
-        big = max(a, b)
-        small = min(a, b)
-        return ('{} - {} = '.format(printNumFunc(big), printNumFunc(small)), big - small)
+        nums = [getNumFunc(), getNumFunc()]
+        nums.sort(key=lambda i: i[1])
+        return ('{} - {} = '.format(nums[1][0], nums[0][0]), nums[1][1] - nums[0][1])
     return sub
 
 
-def makeDiv(getNumFunc, printNumFunc):
+def makeDiv(getNumFunc):
     """Return division function."""
     def div():
-        a = getNumFunc()
-        b = 0
-        while b == 0:
-            b = getNumFunc()
-        return ('{} / {} = '.format(printNumFunc(a * b), printNumFunc(b)), printNumFunc(a))
+        (aStr, aVal) = getNumFunc()
+        (bStr, bVal) = ('0', 0)
+        while bVal == 0:
+            (bStr, bVal) = getNumFunc()
+        return ('{} / {} = '.format(aStr, bStr), aVal/bVal)
     return div
+
+
+def divInt():
+    (aStr, aVal) = getWeightedRandomSingleDigit()
+    (bStr, bVal) = ('0', 0)
+    while bVal == 0:
+        (bStr, bVal) = getWeightedRandomSingleDigit()
+    return ('{} / {} = '.format(str(aVal * bVal), bStr), aVal)
 
 
 def reduceFraction():
     """Create reduce fraction problem."""
-    a = getRandomSingleDigitFraction()
+    (aStr, aVal) = getRandomSingleDigitFraction()
     b = random.randint(1,9)
-    return ('Reduce {}/{} = '.format(a.numerator*b, a.denominator*b), a)
+    return ('Reduce {}/{} = '.format(aVal.numerator*b, aVal.denominator*b), aVal)
+
+
+def reduceToMixedNumber():
+    """Create reduce to mixed number problem."""
+    num = random.randint(1,999)
+    denom = random.randint(1,12)
+    return ('Reduce to mixed number {}/{} = '.format(str(num), str(denom)), Fraction(num, denom))
 
 
 def getProblem():
     """Construct an arithmetic problem. Return (problem-string, answer)."""
     distrib = {
-        #makeMult(getRandomSingleDigit, str): 1
-        #makeDiv(getRandomSingleDigit, str): 1
-        #reduceFraction: 1,
-        #makeAdd(getRandomSingleDigitFraction, fractionToMixedNumString): 1
-        #makeSub(getRandomSingleDigitMixedFraction, fractionToMixedNumString): 1
-        makeAdd(getRandomDecimal, str): 1
+        #makeMult(getWeightedRandomSingleDigit): 1
+        #divInt: 1
+        #makeDiv(getWeightedRandomSingleDigit, str): 1
+        reduceFraction: 1,
+        reduceToMixedNumber: 1,
+        makeAdd(getRandomSingleDigitFraction): 1
+        makeSub(getRandomSingleDigitMixedFraction): 1
+        makeAdd(getRandomDecimal): 1
+        makeSub(getRandomDecimal): 1
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
@@ -177,7 +195,7 @@ def main():
     print('Answers can be:')
     print('* integers (e.g. 11, 121)')
     print('* decimals (e.g. 2.34, 1000.354)')
-    print('* mixed fraction (e.g. 3 3/4, 234 1/2). Fraction answers must be reduced')
+    print('* mixed fraction (e.g. 1/2, 1 3/4, 234 12/13). Fraction answers must be reduced')
     print('')
     total = getInt('total number of questions: ')
     correct = 0
