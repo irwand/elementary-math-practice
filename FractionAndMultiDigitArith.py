@@ -8,6 +8,9 @@ from fractions import Fraction
 from decimal import Decimal
 
 
+OPERATIONS = ['+', '-', 'x', '/']
+
+
 def getInt(str):
     """Try and try again to get integer."""
     while True:
@@ -88,10 +91,18 @@ def getWeightedRandomSingleDigit():
 def getRandomSingleDigitFraction():
     """Get random fraction single digit."""
     a = random.randint(1,9)
-    b = random.randint(1,9)
+    b = a
+    while b == a:
+        b = random.randint(1,9)
     num = min(a, b)
     denom = max(a, b)
     return (fractionToMixedNumString(Fraction(num, denom)), Fraction(num, denom))
+
+
+def getWeightedRandomDoubleDigit():
+    a = getWeightedRandomSingleDigit()
+    b = getWeightedRandomSingleDigit()
+    return (a[0]+b[0], int(a[0]+b[0]))
 
 
 def getRandomSingleDigitMixedFraction():
@@ -116,7 +127,11 @@ def makeAdd(getNumFunc):
     def add():
         (aStr, aVal) = getNumFunc()
         (bStr, bVal) = getNumFunc()
-        return ('{} + {} = '.format(aStr, bStr), aVal + bVal)
+        if set(aStr).intersection(set(OPERATIONS)):
+            aStr = '( ' + aStr + ' )'
+        if set(bStr).intersection(set(OPERATIONS)):
+            bStr = '( ' + bStr + ' )'
+        return ('{} + {}'.format(aStr, bStr), aVal + bVal)
     return add
 
 
@@ -125,7 +140,11 @@ def makeMult(getNumFunc):
     def mult():
         (aStr, aVal) = getNumFunc()
         (bStr, bVal) = getNumFunc()
-        return ('{} x {} = '.format(aStr, bStr), aVal * bVal)
+        if set(aStr).intersection(set(OPERATIONS)):
+            aStr = '( ' + aStr + ' )'
+        if set(bStr).intersection(set(OPERATIONS)):
+            bStr = '( ' + bStr + ' )'
+        return ('{} x {}'.format(aStr, bStr), aVal * bVal)
     return mult
 
 
@@ -134,7 +153,10 @@ def makeSub(getNumFunc):
     def sub():
         nums = [getNumFunc(), getNumFunc()]
         nums.sort(key=lambda i: i[1])
-        return ('{} - {} = '.format(nums[1][0], nums[0][0]), nums[1][1] - nums[0][1])
+        for i,e in enumerate(nums):
+            if set(e[0]).intersection(set(OPERATIONS)):
+                nums[i] = ('( ' + e[0] + ' )', e[1])
+        return ('{} - {}'.format(nums[1][0], nums[0][0]), nums[1][1] - nums[0][1])
     return sub
 
 
@@ -145,8 +167,30 @@ def makeDiv(getNumFunc):
         (bStr, bVal) = ('0', 0)
         while bVal == 0:
             (bStr, bVal) = getNumFunc()
-        return ('{} / {} = '.format(aStr, bStr), aVal/bVal)
+        if set(aStr).intersection(set(OPERATIONS)):
+            aStr = '( ' + aStr + ' )'
+        if set(bStr).intersection(set(OPERATIONS)):
+            bStr = '( ' + bStr + ' )'
+        return ('{} / {}'.format(aStr, bStr), aVal/bVal)
     return div
+
+
+def mixedOpAddSub():
+    """Return mixed operations with add/sub to be the main op."""
+    def getMultDiv():
+        distrib = {
+            makeMult(getWeightedRandomDoubleDigit): 2,
+            divInt: 1,
+        }
+        indexArr = buildIndexArray(distrib)
+        return indexArr[random.randint(0, len(indexArr) - 1)]()
+
+    distrib = {
+            #makeAdd(getMultDiv): 1,
+            makeSub(getMultDiv): 1,
+        }
+    indexArr = buildIndexArray(distrib)
+    return indexArr[random.randint(0, len(indexArr) - 1)]()
 
 
 def divInt():
@@ -154,21 +198,21 @@ def divInt():
     (bStr, bVal) = ('0', 0)
     while bVal == 0:
         (bStr, bVal) = getWeightedRandomSingleDigit()
-    return ('{} / {} = '.format(str(aVal * bVal), bStr), aVal)
+    return ('{} / {}'.format(str(aVal * bVal), bStr), aVal)
 
 
 def reduceFraction():
     """Create reduce fraction problem."""
     (aStr, aVal) = getRandomSingleDigitFraction()
-    b = random.randint(1,9)
-    return ('Reduce {}/{} = '.format(aVal.numerator*b, aVal.denominator*b), aVal)
+    b = random.randint(2,10)
+    return ('Reduce {}/{}'.format(aVal.numerator*b, aVal.denominator*b), aVal)
 
 
 def reduceToMixedNumber():
     """Create reduce to mixed number problem."""
     num = random.randint(1,999)
     denom = random.randint(1,12)
-    return ('Reduce to mixed number {}/{} = '.format(str(num), str(denom)), Fraction(num, denom))
+    return ('Reduce to mixed number {}/{}'.format(str(num), str(denom)), Fraction(num, denom))
 
 
 def getProblem():
@@ -177,12 +221,13 @@ def getProblem():
         #makeMult(getWeightedRandomSingleDigit): 1
         #divInt: 1
         #makeDiv(getWeightedRandomSingleDigit, str): 1
-        reduceFraction: 1,
-        reduceToMixedNumber: 1,
-        makeAdd(getRandomSingleDigitFraction): 1
-        makeSub(getRandomSingleDigitMixedFraction): 1
-        makeAdd(getRandomDecimal): 1
-        makeSub(getRandomDecimal): 1
+        #reduceFraction: 1,
+        #reduceToMixedNumber: 1,
+        #makeAdd(getRandomSingleDigitFraction): 1
+        #makeSub(getRandomSingleDigitMixedFraction): 1
+        #makeAdd(getRandomDecimal): 1
+        #makeSub(getRandomDecimal): 1
+        mixedOpAddSub: 1
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
@@ -205,6 +250,7 @@ def main():
 
     for i in range(0, total):
         (problemString, correctAnswer) = getProblem()
+        problemString += ' = '
         (answerString, answerValue) = getValidAnswer(problemString)
         if answerValue == correctAnswer:
             if type(answerValue) in [int, Decimal]:
