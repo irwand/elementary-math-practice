@@ -11,6 +11,13 @@ from decimal import Decimal
 OPERATIONS = ['+', '-', 'x', '/']
 
 
+def printNum(val):
+    if type(val) == Fraction:
+        return fractionToMixedNumString(val)
+    else:
+        str(val)
+
+
 def getInt(str):
     """Try and try again to get integer."""
     while True:
@@ -175,7 +182,7 @@ def makeDiv(getNumFunc):
     return div
 
 
-def mixedOpAddSub():
+def mixedOpAddSubInt():
     """Return mixed operations with add/sub to be the main op."""
     def getMultDiv():
         distrib = {
@@ -186,12 +193,31 @@ def mixedOpAddSub():
         return indexArr[random.randint(0, len(indexArr) - 1)]()
 
     distrib = {
-            #makeAdd(getMultDiv): 1,
+            makeAdd(getMultDiv): 1,
             makeSub(getMultDiv): 1,
         }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
 
+
+def makeMixedOpAddSubFracDec(getNumFunc):
+    """Return mixed operations with add/sub to be the main op."""
+    def getAddSub():
+        distrib = {
+            makeAdd(getNumFunc): 1,
+            makeSub(getNumFunc): 1,
+        }
+        indexArr = buildIndexArray(distrib)
+        return indexArr[random.randint(0, len(indexArr) - 1)]()
+
+    def mixedOpAddSubFracDec():
+        distrib = {
+                makeAdd(getAddSub): 1,
+                makeSub(getAddSub): 1,
+            }
+        indexArr = buildIndexArray(distrib)
+        return indexArr[random.randint(0, len(indexArr) - 1)]()
+    return mixedOpAddSubFracDec
 
 def divInt():
     (aStr, aVal) = getWeightedRandomSingleDigit()
@@ -227,7 +253,10 @@ def getProblem():
         #makeSub(getRandomSingleDigitMixedFraction): 1
         #makeAdd(getRandomDecimal): 1
         #makeSub(getRandomDecimal): 1
-        mixedOpAddSub: 1
+        #mixedOpAddSubInt: 1
+        #makeMixedOpAddSubFracDec(getRandomSingleDigitFraction): 1
+        makeMixedOpAddSubFracDec(getRandomSingleDigitMixedFraction): 1
+        #makeMixedOpAddSubFracDec(getRandomDecimal): 1
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
@@ -263,7 +292,7 @@ def main():
                     print ('The answer is correct, but not reduced correctly. The proper answer: {}'.format(fractionToMixedNumString(correctAnswer)))
         else:
             wrong += 1
-            print ('wrong. the right answer: %s' % (str(correctAnswer)))
+            print ('wrong. the right answer: %s' % (printNum(correctAnswer)))
 
     end = time.time()
 
