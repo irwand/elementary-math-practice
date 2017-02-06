@@ -246,17 +246,17 @@ def reduceToMixedNumber():
 def getProblem():
     """Construct an arithmetic problem. Return (problem-string, answer)."""
     distrib = {
-        makeMult(getWeightedRandomDoubleDigit): 1
-        divInt: 1
+        makeMult(getWeightedRandomDoubleDigit): 1,
+        divInt: 1,
         reduceFraction: 1,
         reduceToMixedNumber: 1,
         makeAdd(getRandomSingleDigitFraction): 1,
         makeSub(getRandomSingleDigitMixedFraction): 1,
         makeAdd(getRandomDecimal): 1,
         makeSub(getRandomDecimal): 1,
-        mixedOpAddSubInt: 1
-        makeMixedOpAddSubFracDec(getRandomSingleDigitFraction): 1
-        makeMixedOpAddSubFracDec(getRandomDecimal): 1
+        mixedOpAddSubInt: 1,
+        makeMixedOpAddSubFracDec(getRandomSingleDigitFraction): 1,
+        makeMixedOpAddSubFracDec(getRandomDecimal): 1,
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
