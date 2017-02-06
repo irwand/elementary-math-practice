@@ -103,12 +103,14 @@ def getRandomSingleDigitMixedFraction():
 
 def getRandomDecimal():
     """Get decimal number."""
-    numWhole = random.randint(1,2)
-    whole = ''.join([str(getWeightedRandomSingleDigit()) for i in range(numWhole)])
-    numDec = random.randint(0,2)
-    dec = ''.join([str(getWeightedRandomSingleDigit()) for i in range(numDec)])
-    string = whole + '.' + dec
-    return (string, Decimal(string))
+    numWhole = random.randint(1,3)
+    whole = ''.join([str(getWeightedRandomSingleDigit()[1]) for i in range(numWhole)])
+    numDec = random.randint(1,3)
+    dec = ''
+    if numDec:
+        dec = '.' + ''.join([str(getWeightedRandomSingleDigit()[1]) for i in range(numDec)])
+    s = whole + dec
+    return (s, Decimal(s))
 
 
 def makeAdd(getNumFunc):
@@ -179,10 +181,10 @@ def getProblem():
         #makeDiv(getWeightedRandomSingleDigit, str): 1
         reduceFraction: 1,
         reduceToMixedNumber: 1,
-        makeAdd(getRandomSingleDigitFraction): 1
-        makeSub(getRandomSingleDigitMixedFraction): 1
-        makeAdd(getRandomDecimal): 1
-        makeSub(getRandomDecimal): 1
+        makeAdd(getRandomSingleDigitFraction): 1,
+        makeSub(getRandomSingleDigitMixedFraction): 1,
+        makeAdd(getRandomDecimal): 1,
+        makeSub(getRandomDecimal): 1,
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
