@@ -107,6 +107,7 @@ def main():
     print ('total wrong: %d (%.1f%%)' % (wrong, wrong / total * 100))
     deltaSecs = end - start
     print ('total time: %d minutes %d seconds' % (int(deltaSecs / 60), deltaSecs % 60))
+    input('press <Enter> to quit program...')
     return 0
 
 
