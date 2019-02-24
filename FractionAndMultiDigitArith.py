@@ -195,7 +195,7 @@ def mixedOpAddSubInt():
     def getMultDiv():
         distrib = {
             makeMult(make_getWeightedRandomMultiDigit(2)): 2,
-            divInt: 1,
+            makeDivInt(make_getWeightedRandomMultiDigit(2)): 1,
         }
         indexArr = buildIndexArray(distrib)
         return indexArr[random.randint(0, len(indexArr) - 1)]()
@@ -210,18 +210,18 @@ def mixedOpAddSubInt():
 
 def makeMixedOpAddSubFracDec(getNumFunc):
     """Return mixed operations with add/sub to be the main op."""
-    def getAddSub():
+    def getMultDiv():
         distrib = {
-            makeAdd(getNumFunc): 1,
-            makeSub(getNumFunc): 1,
+            makeMult(getNumFunc): 1,
+            makeDivInt(getNumFunc): 1,
         }
         indexArr = buildIndexArray(distrib)
         return indexArr[random.randint(0, len(indexArr) - 1)]()
 
     def mixedOpAddSubFracDec():
         distrib = {
-                makeAdd(getAddSub): 1,
-                makeSub(getAddSub): 1,
+                makeAdd(getMultDiv): 1,
+                makeSub(getMultDiv): 1,
             }
         indexArr = buildIndexArray(distrib)
         return indexArr[random.randint(0, len(indexArr) - 1)]()
@@ -230,8 +230,8 @@ def makeMixedOpAddSubFracDec(getNumFunc):
 def makeDivInt(getNumFunc):
     def div():
         (aStr, aVal) = getNumFunc()
-        (bStr, bVal) = ('0', 0)
-        while bVal == 0:
+        (bStr, bVal) = getNumFunc()
+        while not bVal:
             (bStr, bVal) = getNumFunc()
         return ('{} / {}'.format(str(aVal * bVal), bStr), aVal)
     return div
@@ -254,19 +254,19 @@ def reduceToMixedNumber():
 def getProblem():
     """Construct an arithmetic problem. Return (problem-string, answer)."""
     distrib = {
-        #makeMult(make_getWeightedRandomMultiDigit(2)): 1,
-        #makeDivInt(getWeightedRandomSingleDigit): 1,
-        reduceFraction: 1,
+        # makeMult(make_getWeightedRandomMultiDigit(2)): 1,
+        # makeDivInt(getWeightedRandomSingleDigit): 1,
+        # reduceFraction: 1,
         reduceToMixedNumber: 1,
-        #makeAdd(getRandomSingleDigitFraction): 1,
-        #makeSub(getRandomSingleDigitMixedFraction): 1,
-        #makeAdd(getRandomDecimal): 1,
-        #makeSub(getRandomDecimal): 1,
+        # makeAdd(getRandomSingleDigitFraction): 1,
+        # makeSub(getRandomSingleDigitMixedFraction): 1,
+        # makeAdd(getRandomDecimal): 1,
+        # makeSub(getRandomDecimal): 1,
         mixedOpAddSubInt: 1,
         makeMixedOpAddSubFracDec(getRandomSingleDigitFraction): 1,
         makeMixedOpAddSubFracDec(getRandomSingleDigitMixedFraction): 1,
         makeMixedOpAddSubFracDec(getRandomDecimal): 1,
-        makeDivInt(make_getWeightedRandomMultiDigit(2,3)): 1,
+        makeDivInt(make_getWeightedRandomMultiDigit(2)): 1,
     }
     indexArr = buildIndexArray(distrib)
     return indexArr[random.randint(0, len(indexArr) - 1)]()
